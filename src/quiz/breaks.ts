@@ -40,6 +40,13 @@ export type Break = {
    * pipeline runs on.
    */
   diagram?: 'caffeine';
+  /**
+   * Atmospheric band, chosen from the answer they just gave — so the picture
+   * is of *their* moment rather than a generic one. Abstract and dark by
+   * rule: light is the only subject, and nothing in these images could have
+   * come from a stock library.
+   */
+  image?: (answers: Answers) => string;
 };
 
 export const breaks: Break[] = [
@@ -47,6 +54,20 @@ export const breaks: Break[] = [
     id: 'break-pattern',
     after: 'where-it-breaks',
     label: 'Noted',
+    image: (answers) => {
+      switch (answers['where-it-breaks']) {
+        case 'first-hours':
+          return 'dawn';
+        case 'afternoon':
+          return 'afternoon';
+        case 'after-dinner':
+          return 'night';
+        case 'monday':
+          return 'rhythm';
+        default:
+          return 'measure';
+      }
+    },
     headline: (answers) => {
       switch (answers['where-it-breaks']) {
         case 'first-hours':
@@ -104,6 +125,7 @@ export const breaks: Break[] = [
     id: 'break-almost',
     after: 'training',
     label: 'Nearly there',
+    image: () => 'measure',
     headline: () => 'Three questions left.',
     body: () =>
       'The last few are about context rather than habits — how long this has been going on, and what you have already tried. They change what we put in front of you first.',

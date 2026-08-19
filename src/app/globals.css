@@ -34,6 +34,11 @@ body {
 }
 
 html {
+  /* Tells the browser to draw native controls for a dark UI. Without it the
+     time input's clock glyph is painted black on our near-black field and
+     effectively disappears — the OS assumes a light page. */
+  color-scheme: dark;
+
   /* iOS inflates text in some layouts, which pushes button labels past their
      own borders on a real device while a desktop viewport emulator shows
      nothing wrong. This is the single most common cause of that bug. */
@@ -203,6 +208,7 @@ button {
 }
 
 .time-input {
+  color-scheme: dark;
   font-family: var(--font-mono);
   font-size: var(--size-xxl);
   padding: var(--space-4);
@@ -211,6 +217,27 @@ button {
   background: var(--c-surface);
   color: var(--c-bright);
   width: 100%;
+}
+
+/* We paint the clock ourselves.
+   Relying on the browser's own glyph failed twice over: `color-scheme: dark`
+   is respected inconsistently for this control, and the CSS minifier rewrites
+   `filter: invert(1)` to `filter: invert()`. Supplying the icon as a
+   background guarantees a white glyph everywhere, and the native indicator
+   stays on top at zero opacity so tapping it still opens the picker. */
+.time-input {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23EDF1F7%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M12%207v5l3.5%202%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 22px 22px;
+  padding-right: 3.5rem;
+}
+
+.time-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
 }
 
 .back {
@@ -461,23 +488,6 @@ button {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* --------------------------------------------------------- hero figure */
-
-.hero-figure {
-  margin-top: var(--space-8);
-  /* the curves bleed past the shell — a day doesn't stop at the margin */
-  margin-inline: calc(var(--space-5) * -1);
-}
-
-.hero-caption {
-  font-family: var(--font-mono);
-  font-size: var(--size-sm);
-  color: var(--c-faint);
-  text-align: center;
-  margin-top: var(--space-4);
-  padding-inline: var(--space-5);
 }
 
 /* -------------------------------------------------------------- intake */
@@ -899,10 +909,9 @@ button {
   right: 0;
   bottom: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--c-surface-deep) 92%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--c-rule);
+  background: var(--c-surface-deep);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
   /* max() rather than a bare env(): on a browser with no inset the safe-area
      value is 0, and the bar would end up with no bottom padding at all.
@@ -912,6 +921,29 @@ button {
   padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
   padding-left: max(var(--space-5), env(safe-area-inset-left, 0px));
   padding-right: max(var(--space-5), env(safe-area-inset-right, 0px));
+}
+
+/* The fade above the bar.
+   A hairline border cuts the page in two; a gradient lets the content dissolve
+   into the bar instead, which is the same rule the cards follow — nothing in
+   this system has a hard edge against the dark.
+
+   It sits OUTSIDE the bar's box (bottom: 100%), so it costs nothing in the
+   measured height and the spacer stays exact. */
+.sticky-cta::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 5rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--c-surface-deep) 0%,
+    color-mix(in srgb, var(--c-surface-deep) 72%, transparent) 42%,
+    transparent 100%
+  );
 }
 
 /* Reserves the bar's height in normal flow so it can never cover the last
@@ -1002,24 +1034,30 @@ body::after {
   z-index: 1;
 }
 
-/* The archetype's photographic ground. Fixed, inert, and under everything.
-   Heavily dimmed: the generated bloom sits bottom-left, and at full strength
-   it competes with the card, which has to stay the brightest object.
+/* The archetype's photographic ground.
 
-   z-index MUST be negative. This lives inside .shell, which creates a
-   stacking context — and a positioned element at z-index 0 paints *above*
-   its non-positioned in-flow siblings, so at 0 the gradient covered the
-   copy. Negative puts it behind the content while keeping it inside the
-   context, so it still sits above the page background. */
+   Anchored to the top of the document, NOT fixed. Fixed meant it tracked the
+   viewport and therefore sat underneath every photograph further down the
+   page, muddying both. As a top-of-page wash it does its job — establishing
+   the archetype's colour before anything else is read — and then scrolls
+   away and leaves the images alone.
+
+   z-index must stay negative: this lives inside .shell, which creates a
+   stacking context, and a positioned element at 0 paints above its
+   non-positioned in-flow siblings — which is how it once covered the copy. */
 .atmosphere {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62vh;
   z-index: -1;
   pointer-events: none;
   background-size: cover;
-  background-position: center bottom;
-  opacity: 0.5;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 92%);
+  background-position: center top;
+  opacity: 0.55;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 100%);
 }
 
 /* ----------------------------------------------------------- diagrams */
@@ -1037,4 +1075,37 @@ body::after {
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* ------------------------------------------------------------ figures */
+
+/* Full-bleed out of the reading column. A photograph constrained to the text
+   measure reads as an illustration in a document; one that runs past the
+   margins reads as art direction. */
+.figure {
+  margin-inline: calc(var(--space-5) * -1);
+  overflow: hidden;
+}
+
+.figure img {
+  display: block;
+  width: 100%;
+  height: 9.5rem;
+  object-fit: cover;
+  /* Masked on all four edges so the image emerges from the ground instead of
+     sitting on it. Hard edges are what make a dropped-in image look dropped
+     in. */
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+  opacity: 0.85;
+}
+
+.figure[data-tall='true'] img {
+  height: 13rem;
 }

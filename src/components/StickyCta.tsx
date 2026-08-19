@@ -31,12 +31,14 @@ type Props = {
   price?: string;
   priceSuffix?: string;
 } & (
-  | { href: string; scrollTo?: never }
+  | { href: string; scrollTo?: never; onClick?: never }
   /** id of an element to scroll to instead of navigating. */
-  | { scrollTo: string; href?: never }
+  | { scrollTo: string; href?: never; onClick?: never }
+  /** an action to run — used by the quiz, which advances in place. */
+  | { onClick: () => void; href?: never; scrollTo?: never }
 );
 
-export function StickyCta({ label, price, priceSuffix, href, scrollTo }: Props) {
+export function StickyCta({ label, price, priceSuffix, href, scrollTo, onClick }: Props) {
   const bar = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
 
@@ -77,10 +79,12 @@ export function StickyCta({ label, price, priceSuffix, href, scrollTo }: Props) 
           ) : (
             <button
               className="cta sticky-cta-button"
-              onClick={() =>
-                document
-                  .getElementById(scrollTo!)
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              onClick={
+                onClick ??
+                (() =>
+                  document
+                    .getElementById(scrollTo!)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
               }
             >
               {label}

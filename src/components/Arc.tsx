@@ -1,5 +1,6 @@
 import type { ArchetypeSlug } from '@/design/tokens';
 import { archetypes } from '@/quiz/archetypes';
+import { Figure } from './Figure';
 
 /**
  * What happens after today.
@@ -51,6 +52,10 @@ export function Arc({ slug }: { slug: ArchetypeSlug }) {
         <p className="section-label">Where this goes</p>
         <h2 className="arc-promise">{archetype.promise}</h2>
       </div>
+
+      {/* A steady repeating rhythm with one interval visibly out of step —
+          which is the thing the protocol is working on. */}
+      <Figure src="rhythm" />
 
       <ol className="stages">
         {stages.map((stage) => (

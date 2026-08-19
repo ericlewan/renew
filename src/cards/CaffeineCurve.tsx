@@ -18,7 +18,8 @@ const AWAKE_H = 16; // wake to bed, near enough for a diagram
 
 const W = 320;
 const H = 150;
-const PAD = { l: 6, r: 6, t: 16, b: 26 };
+/* Extra top padding so the endpoint label has room above the curve. */
+const PAD = { l: 6, r: 6, t: 26, b: 26 };
 
 export function CaffeineCurve({
   wakeTime,
@@ -74,7 +75,7 @@ export function CaffeineCurve({
         />
         <circle cx={PAD.l + plotW} cy={bedY} r="4" fill={colour.bright} />
         <text
-          x={PAD.l + plotW - 8} y={bedY - 12} textAnchor="end"
+          x={PAD.l + plotW - 8} y={bedY - 20} textAnchor="end"
           fontFamily={font.mono} fontSize="13" fill={colour.bright}
         >
           ~{percentAtBed}% left

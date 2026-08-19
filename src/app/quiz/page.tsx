@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { CaffeineCurve } from '@/cards/CaffeineCurve';
+import { Figure } from '@/components/Figure';
+import { StickyCta } from '@/components/StickyCta';
 import { breakAfter } from '@/quiz/breaks';
 import { readIntake } from '@/quiz/intake';
 import { NO_BACK_FROM_INDEX, questions } from '@/quiz/questions';
@@ -96,6 +98,8 @@ export default function Quiz() {
             </h2>
             <p className="interstitial-body">{interstitial.body(answers)}</p>
 
+            {interstitial.image && <Figure src={interstitial.image(answers)} />}
+
             {interstitial.diagram === 'caffeine' && (
               <CaffeineCurve
                 wakeTime={typeof answers['wake-time'] === 'string' ? answers['wake-time'] : null}
@@ -104,10 +108,12 @@ export default function Quiz() {
             )}
           </div>
 
-          <button className="cta" onClick={() => advance(answers)}>
-            Continue
-          </button>
         </div>
+
+        {/* Fixed rather than inline: with an image and a diagram a break
+            screen can run past the fold, and the only thing to do on it is
+            continue. */}
+        <StickyCta label="Continue" onClick={() => advance(answers)} />
       </main>
     );
   }

@@ -114,7 +114,12 @@ export function archetypeCardSvg({
 
   const below = markerIsTrough(slug) && !atEdge;
   const labelSide = below ? 1 : -1;
-  const labelY = marker.y + labelSide * 58 + (below ? 8 : 0);
+
+  /* Asymmetric on purpose. Above a peak there is open sky, so the label can
+     stand well clear. Below a trough it only has the gap between the marker
+     and the horizon to work with, and the same generous offset drops it
+     straight onto the axis. */
+  const labelY = marker.y + (below ? 50 : -76);
   const labelAnchor = nearLeft ? 'start' : nearRight ? 'end' : 'middle';
 
   const lineRows = wrap(archetype.line, 32)
@@ -268,9 +273,9 @@ export function archetypeCardSvg({
   </g>
 
   <g id="break-marker">
-    <line x1="${marker.x}" y1="${marker.y + labelSide * 20}" x2="${marker.x}" y2="${marker.y + labelSide * 36}" stroke="${accent}" stroke-width="2" opacity="0.5"/>
+    <line x1="${marker.x}" y1="${marker.y + labelSide * 20}" x2="${marker.x}" y2="${marker.y + (below ? 32 : 50)}" stroke="${accent}" stroke-width="2" opacity="0.5"/>
     ${markerGlow}
-    <text x="${marker.x}" y="${labelY}" font-family="${font.mono}" font-size="26" fill="${bright}" text-anchor="${labelAnchor}">${esc(marker.label)}</text>
+    <text x="${marker.x}" y="${labelY}" font-family="${font.mono}" font-size="26" fill="${bright}" text-anchor="${labelAnchor}" stroke="${ground}" stroke-width="7" paint-order="stroke fill">${esc(marker.label)}</text>
   </g>
 
   <g id="horizon">

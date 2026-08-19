@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { Figure } from '@/components/Figure';
+import { StickyCta } from '@/components/StickyCta';
 import { hasSocialProof, proof } from '@/lib/proof';
 import { intakeServerSnapshot, intakeSnapshot, subscribeIntake } from '@/quiz/intake';
 
@@ -38,6 +40,10 @@ export default function Proof() {
             runs tomorrow morning.
           </h1>
         </div>
+
+        {/* First light arriving — the headline above promises tomorrow
+            morning, so the image is the same moment. */}
+        <Figure src="dawn" />
 
         {hasSocialProof() ? (
           <div className="stack" style={{ gap: 'var(--space-5)' }}>
@@ -85,6 +91,10 @@ export default function Proof() {
           </p>
         </div>
       </div>
+
+      {/* Three method blocks make this long enough that the inline button
+          below the fold is easy to never reach. */}
+      <StickyCta href="/quiz" label="Start the read" />
     </main>
   );
 }

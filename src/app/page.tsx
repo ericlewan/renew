@@ -1,4 +1,4 @@
-import { HeroCurves } from '@/cards/HeroCurves';
+import { Figure } from '@/components/Figure';
 import { GenderStart } from '@/components/GenderStart';
 import { Wordmark } from '@/components/Wordmark';
 
@@ -10,9 +10,10 @@ import { Wordmark } from '@/components/Wordmark';
  * outcome rather than the reveal. "Find out why" sells a diagnosis, and a
  * diagnosis is free; the thing being sold is the change.
  *
- * The four curves sit under the hook because they ask the same question the
- * headline does, without words — and they show what the product produces
- * before anyone spends two minutes on a quiz.
+ * One visual moment below the hook, not two. The four curves used to sit
+ * here as well; stacked with a photograph they competed, and the curves
+ * argue a point that the proof screen is already built to make — so they
+ * moved there and the landing kept the atmosphere.
  *
  * The call to action is a gender select rather than a Start button. Answering
  * is easier than committing, and one tap in makes the next sixteen feel like
@@ -38,10 +39,11 @@ export default function Landing() {
         <GenderStart />
       </div>
 
-      <div className="hero-figure">
-        <HeroCurves />
-        <p className="hero-caption">Four ways a day breaks. One of them is yours.</p>
-      </div>
+      {/* Cool-cast and self-contained, so it sits in the ground rather than
+          on it. An earlier warm frame fought the blue-black background and
+          its subject ran off both edges, which read as a crop rather than a
+          composition. */}
+      <Figure src="drift" tall />
     </main>
   );
 }

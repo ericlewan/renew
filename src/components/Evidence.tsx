@@ -1,4 +1,5 @@
 import { evidence, evidenceDisclaimer } from '@/lib/evidence';
+import { Figure } from './Figure';
 
 /**
  * What the rules are built on.
@@ -19,6 +20,10 @@ export function Evidence() {
         <p className="section-label">What this is built on</p>
         <h2 className="pricing-title">The rules come from somewhere.</h2>
       </div>
+
+      {/* Light refracted through glass into a clean gradient — precision,
+          measurement, an instrument rather than a mood. */}
+      <Figure src="measure" />
 
       <ol className="studies">
         {evidence.map((study) => (
