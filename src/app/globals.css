@@ -1,49 +1,984 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Fonts are self-hosted from public/fonts/. Archivo variable covers 400–700
+   in the browser; the rasteriser reads the static TTFs alongside it, because
+   variable-font support in SVG rasterisers is unreliable and a print pipeline
+   has to be deterministic. */
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/Archivo-Variable.woff2') format('woff2-variations');
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo Expanded';
+  src: url('/fonts/Archivo-ExpandedBold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fonts/SpaceMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
+  margin: 0;
   padding: 0;
+}
+
+/* The ground. Every page sits on the deep field; the archetype pages tint it
+   with their own --ground, so navigating between profiles feels like moving
+   through times of day rather than swapping themes. */
+body {
+  background: var(--c-surface-deep);
+  color: var(--c-body);
+  font-family: var(--font-text);
+  font-size: var(--size-base);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-tight);
+  color: var(--c-bright);
   margin: 0;
 }
 
-a {
-  color: inherit;
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- layout */
+
+.shell {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-9);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Wide tracking is the mood, and it belongs on labels only — never on
+   running text, where it destroys reading speed. */
+.section-label {
+  font-size: var(--size-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--accent, var(--c-muted));
+}
+
+/* ------------------------------------------------------------ landing */
+
+.hero h1 {
+  font-size: clamp(2.75rem, 12vw, var(--size-displayLarge));
+}
+
+.hero .sub {
+  font-size: var(--size-md);
+  color: var(--c-body);
+  margin-top: var(--space-4);
+  max-width: 26rem;
+}
+
+/* The one bright object on the page, same rule as the card. */
+.cta {
+  display: inline-block;
+  background: var(--accent, var(--c-bright));
+  color: #0A0E16;
+  text-decoration: none;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.01em;
+  border: none;
+  transition: filter 140ms ease, transform 140ms ease;
+}
+
+.cta:hover {
+  filter: brightness(1.12);
+}
+
+.cta:active {
+  transform: scale(0.985);
+}
+
+.reassure {
+  font-size: var(--size-sm);
+  color: var(--c-faint);
+  font-family: var(--font-mono);
+}
+
+/* --------------------------------------------------------------- quiz */
+
+.progress {
+  height: 2px;
+  background: var(--c-rule);
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--c-bright);
+  transition: width 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.question {
+  font-size: var(--size-xl);
+}
+
+.note {
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+  margin-top: var(--space-2);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option {
+  text-align: left;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--c-bright);
+  font-weight: var(--weight-medium);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.option:hover {
+  border-color: var(--c-muted);
+  background: #19202E;
+}
+
+.option[data-selected='true'] {
+  border-color: var(--c-bright);
+}
+
+.option .detail {
+  display: block;
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+  font-weight: var(--weight-medium);
+  margin-top: var(--space-1);
+}
+
+.time-input {
+  font-family: var(--font-mono);
+  font-size: var(--size-xxl);
+  padding: var(--space-4);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  color: var(--c-bright);
+  width: 100%;
+}
+
+.back {
+  background: none;
+  border: none;
+  color: var(--c-faint);
+  padding: 0;
+  font-size: var(--size-sm);
+  font-family: var(--font-mono);
+}
+
+/* ------------------------------------------------------------ profile */
+
+.card-frame {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--c-rule);
+}
+
+.signs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.signs li {
+  padding-left: var(--space-5);
+  position: relative;
+  color: var(--c-body);
+}
+
+.signs li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent, var(--c-bright));
+}
+
+.mechanism {
+  font-size: var(--size-md);
+  color: var(--c-body);
+}
+
+.first-change {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-left: 2px solid var(--accent, var(--c-bright));
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.first-change h3 {
+  font-size: var(--size-lg);
+  margin-top: var(--space-2);
+}
+
+.first-change .why {
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+  margin-top: var(--space-3);
+}
+
+.cutoff {
+  font-family: var(--font-mono);
+  font-size: var(--size-display);
+  color: var(--accent, var(--c-bright));
+  letter-spacing: -0.02em;
+}
+
+.capture {
+  border-top: 1px solid var(--c-rule);
+  padding-top: var(--space-6);
+}
+
+.field {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.field input {
+  flex: 1;
+  padding: var(--space-4);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  font: inherit;
+  color: var(--c-bright);
+  min-width: 0;
+}
+
+.field input::placeholder {
+  color: var(--c-faint);
+}
+
+/* ----------------------------------------------------------- the cliff */
+
+/* The free page above this reads as complete, which is the problem it's
+   solving: the gap between a diagnosis and a daily decision has to be shown,
+   not argued. */
+
+.protocol {
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-card);
+  padding: var(--space-6) var(--space-5);
+  background: var(--c-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.protocol-title {
+  font-size: var(--size-lg);
+}
+
+.actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.action {
+  display: grid;
+  grid-template-columns: 4.75rem 1fr;
+  gap: var(--space-4);
+  align-items: baseline;
+}
+
+/* Times are mono because they're data, and because a column of times that
+   doesn't align is the fastest way to look amateur. */
+.action-time {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--accent, var(--c-bright));
+}
+
+.action[data-locked='true'] .action-time {
+  color: var(--c-faint);
+}
+
+.action-text {
+  color: var(--c-bright);
+}
+
+/* Redaction rather than a blur: blurred text invites squinting, and on a
+   phone a blur reads as a rendering bug. Bars read as deliberate. */
+.redacted {
+  display: block;
+  height: 0.7em;
+  border-radius: 2px;
+  background: var(--c-rule);
+  width: 100%;
+  max-width: 17rem;
+}
+
+.action:nth-child(3) .redacted {
+  max-width: 13rem;
+}
+
+.action:nth-child(4) .redacted {
+  max-width: 15rem;
+}
+
+.paywall {
+  border-top: 1px solid var(--c-rule);
+  padding-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.paywall-lead {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  font-size: var(--size-lg);
+  line-height: var(--leading-snug);
+  color: var(--c-bright);
+}
+
+.includes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--size-sm);
+  color: var(--c-muted);
+}
+
+.includes li {
+  padding-left: var(--space-5);
+  position: relative;
+}
+
+.includes li::before {
+  content: '';
+  position: absolute;
+  left: 0.35rem;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent, var(--c-bright));
+}
+
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.price-annual {
+  width: 100%;
+  text-align: center;
+}
+
+.price-note {
+  font-size: var(--size-sm);
+  color: var(--c-faint);
+  text-align: center;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------- hero figure */
+
+.hero-figure {
+  margin-top: var(--space-8);
+  /* the curves bleed past the shell — a day doesn't stop at the margin */
+  margin-inline: calc(var(--space-5) * -1);
+}
+
+.hero-caption {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--c-faint);
+  text-align: center;
+  margin-top: var(--space-4);
+  padding-inline: var(--space-5);
+}
+
+/* -------------------------------------------------------------- intake */
+
+.gender {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Full-width rows rather than a segmented control: the tap target is the
+   whole row, and the arrow says "this continues" so nobody hunts for a
+   separate Start button that isn't there. */
+.gender-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  color: var(--c-bright);
+  font-size: var(--size-md);
+  font-weight: var(--weight-semibold);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.gender-option:hover {
+  border-color: var(--c-bright);
+  background: #19202E;
+}
+
+.gender-option span {
+  color: var(--c-muted);
+}
+
+/* --------------------------------------------------------------- proof */
+
+.proof-headline {
+  font-size: var(--size-xl);
+}
+
+.proof-stat {
+  font-size: var(--size-md);
+  color: var(--c-body);
+}
+
+.proof-stat strong {
+  font-family: var(--font-mono);
+  font-size: var(--size-xl);
+  color: var(--c-bright);
+  display: block;
+}
+
+.method {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.method li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: var(--space-4);
+}
+
+.method-index {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--c-faint);
+  padding-top: 0.2em;
+}
+
+.method-title {
+  font-size: var(--size-md);
+  margin-bottom: var(--space-2);
+}
+
+.method-body {
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+}
+
+.quote blockquote {
+  margin: 0;
+  font-size: var(--size-md);
+  color: var(--c-bright);
+}
+
+.quote figcaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--c-faint);
+}
+
+/* ----------------------------------------------------------- masthead */
+
+.masthead {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: var(--space-7);
+}
+
+/* ----------------------------------------------------------------- arc */
+
+.arc-promise {
+  font-size: var(--size-lg);
+  color: var(--c-bright);
+}
+
+.stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* A rule down the left reads as a timeline without drawing one. */
+.stages li {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: var(--space-4);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--c-rule);
+}
+
+.stages li:first-child {
+  border-left-color: var(--accent, var(--c-bright));
+}
+
+.stage-when {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--accent, var(--c-muted));
+}
+
+.stage-what {
+  font-size: var(--size-md);
+  margin-bottom: var(--space-2);
+}
+
+.stage-detail {
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+}
+
+/* ------------------------------------------------------- funnel steps */
+
+/* The ring is anchored, not centred.
+   Vertically centring the block meant every change in copy height — a
+   one-line step becoming two, or the mid-flight question appearing — moved
+   the ring. Anchoring it to a fixed offset means the ring never moves and
+   everything else grows downward from it. */
+.processing {
+  min-height: 78dvh;
+  padding-top: 12vh;
+}
+
+.ring {
+  width: min(52vw, 220px);
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+/* The label swaps as the ring fills. Fading rather than cutting stops it
+   reading as a flicker. */
+/* A fixed-width column, so the label wraps in the same place every time and
+   the block never resizes under the ring. min-height reserves two lines —
+   the longest step needs them, and reserving stops the reflow. */
+.processing-step {
+  font-family: var(--font-mono);
+  font-size: var(--size-sm);
+  color: var(--c-body);
+  text-align: center;
+  text-wrap: balance;
+  width: min(100%, 21rem);
+  margin: 0 auto;
+  min-height: 3.4em;
+  animation: step-in 320ms ease;
+}
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Same column width as the step label, so the switch from ticking labels to
+   the question doesn't shift the axis of the page. */
+.midflight {
+  width: min(100%, 21rem);
+  margin: 0 auto;
+  animation: step-in 380ms ease;
+}
+
+.midflight .section-label,
+.midflight-question,
+.midflight .note {
+  text-align: center;
+}
+
+.midflight-question {
+  font-size: var(--size-lg);
+  color: var(--c-bright);
+}
+
+.email-input {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  font: inherit;
+  font-size: var(--size-md);
+  color: var(--c-bright);
+}
+
+.email-input::placeholder {
+  color: var(--c-faint);
+}
+
+.plan-cta {
+  border-top: 1px solid var(--c-rule);
+  padding-top: var(--space-6);
+}
+
+.plan-cta-lead {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  font-size: var(--size-lg);
+  line-height: var(--leading-snug);
+  color: var(--c-bright);
+}
+
+/* ------------------------------------------------------- interstitials */
+
+/* A break has to feel like a beat, not a wall — so it sits in the same
+   column as the questions and carries no card, no border, no illustration.
+   The only thing that changes is that there is nothing to answer. */
+.interstitial {
+  padding-top: var(--space-6);
+}
+
+.interstitial-headline {
+  font-size: var(--size-xl);
+  color: var(--c-bright);
+}
+
+.interstitial-body {
+  color: var(--c-body);
+  font-size: var(--size-md);
+  max-width: 30rem;
+}
+
+/* ------------------------------------------------------------ pricing */
+
+.pricing-title {
+  font-size: var(--size-lg);
+}
+
+.tiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  text-align: left;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--c-bright);
+  transition: border-color 140ms ease;
+}
+
+.tier[data-selected='true'] {
+  border-color: var(--accent, var(--c-bright));
+}
+
+.tier-name {
+  font-size: var(--size-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.tier-price {
+  font-family: var(--font-mono);
+  font-size: var(--size-xl);
+  color: var(--c-bright);
+}
+
+.tier-period,
+.tier-flag {
+  font-size: var(--size-xs);
+  color: var(--c-muted);
+}
+
+.tier-flag {
+  color: var(--accent, var(--c-bright));
+  margin-top: var(--space-1);
+}
+
+.tier-flag.muted {
+  color: var(--c-faint);
+}
+
+/* ----------------------------------------------------------- evidence */
+
+.studies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.studies li {
+  border-left: 1px solid var(--c-rule);
+  padding-left: var(--space-4);
+}
+
+.study-supports {
+  font-size: var(--size-md);
+  margin-bottom: var(--space-3);
+}
+
+.study-finding {
+  color: var(--c-body);
+  font-size: var(--size-sm);
+}
+
+/* The limitation is set quieter than the finding but not hidden — it has to
+   be readable by anyone who goes looking for the catch. */
+.study-caveat {
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+  margin-top: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--c-rule);
+}
+
+.study-cite {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--size-xs);
+  color: var(--c-faint);
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+.study-cite:hover {
+  color: var(--c-body);
+}
+
+.disclaimer {
+  font-size: var(--size-sm);
+  color: var(--c-muted);
+  border-top: 1px solid var(--c-rule);
+  padding-top: var(--space-4);
+}
+
+/* --------------------------------------------------------- objections */
+
+.objections {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.objections dt {
+  font-weight: var(--weight-semibold);
+  color: var(--c-bright);
+  margin-bottom: var(--space-2);
+}
+
+.objections dd {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: var(--size-sm);
+}
+
+/* --------------------------------------------------------- sticky cta */
+
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--c-surface-deep) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--c-rule);
+  padding: var(--space-4) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
+  transform: translateY(110%);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sticky-cta[data-visible='true'] {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-cta {
+    transition: none;
   }
+}
+
+.sticky-cta-inner {
+  max-width: 34rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.sticky-cta-price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.sticky-cta-amount {
+  font-family: var(--font-mono);
+  font-size: var(--size-lg);
+  color: var(--c-bright);
+}
+
+.sticky-cta-period {
+  font-size: var(--size-sm);
+  color: var(--c-muted);
+}
+
+
+/* -------------------------------------------------------- atmosphere */
+
+/* A flat hex background is the clearest sign a dark UI was specified rather
+   than designed. These two layers give the page the same surface quality the
+   cards have: a slow hue wash for depth, and fine grain over the top.
+   Both are inert — pointer-events none, fixed, never intercepting a tap. */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in srgb, var(--accent, #4FD1E0) 12%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 10% 100%, color-mix(in srgb, var(--accent, #4FD1E0) 7%, transparent), transparent 55%);
+  transition: background 400ms ease;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22180%22%20height%3D%22180%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20seed%3D%227%22%2F%3E%3CfeColorMatrix%20type%3D%22saturate%22%20values%3D%220%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E");
+  background-size: 180px 180px;
+}
+
+/* Everything real sits above the atmosphere. */
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* The archetype's photographic ground. Fixed, inert, and under everything.
+   Heavily dimmed: the generated bloom sits bottom-left, and at full strength
+   it competes with the card, which has to stay the brightest object.
+
+   z-index MUST be negative. This lives inside .shell, which creates a
+   stacking context — and a positioned element at z-index 0 paints *above*
+   its non-positioned in-flow siblings, so at 0 the gradient covered the
+   copy. Negative puts it behind the content while keeping it inside the
+   context, so it still sits above the page background. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center bottom;
+  opacity: 0.5;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 92%);
+}
+
+/* ----------------------------------------------------------- diagrams */
+
+/* Interstitial diagrams only. Question screens stay text — see breaks.ts. */
+.diagram {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-md);
+}
+
+.diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
