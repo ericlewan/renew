@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArchetypeCardView } from '@/cards/ArchetypeCardView';
 import { Arc } from '@/components/Arc';
 import { Atmosphere } from '@/components/Atmosphere';
+import { DashboardCta } from '@/components/DashboardCta';
 import { OrganicCapture } from '@/components/OrganicCapture';
 import { PlanCta } from '@/components/PlanCta';
 import { Personalised } from '@/components/Personalised';
@@ -109,9 +110,9 @@ export default async function Profile({ params }: { params: Promise<{ slug: stri
         <PlanCta slug={archetype.slug} />
 
         <OrganicCapture slug={archetype.slug} />
-
-
       </div>
+
+      <DashboardCta />
     </main>
   );
 }

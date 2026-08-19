@@ -1,78 +1,91 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { offer } from '@/lib/offer';
 
 /**
- * A pinned call to action for long pages.
+ * A pinned call to action.
  *
- * Long selling pages lose people who never scroll far enough to find the
- * button. This keeps one in reach at all times.
+ * It is always visible. An earlier version hid itself above the fold and
+ * again whenever the pricing block scrolled into view — the reasoning being
+ * that two competing buttons is worse than one. In practice that reads as a
+ * bar that keeps vanishing, and a call to action you have to hunt for is
+ * worth less than a redundant one. Persistent wins.
  *
- * Two details that keep it from being irritating:
+ * Two things keep it out of trouble on a real phone:
  *
- *   1. It hides itself whenever the real pricing block is on screen. Two
- *      competing buttons is worse than one that's out of sight.
- *   2. It doesn't appear until you've scrolled past the top of the page, so
- *      the first screen stays clean.
- *
- * It also reserves its own height at the bottom of the document, so it can
- * never cover the last paragraph — the usual failure of pinned bars.
+ *   1. `env(safe-area-inset-bottom)` via `max()`, so it clears the iOS home
+ *      indicator and Safari's bottom toolbar. This only works because the
+ *      root layout sets `viewport-fit=cover` — without that the inset is 0
+ *      and the padding does nothing.
+ *   2. A spacer of the same height in normal flow, so the bar can never
+ *      cover the end of the page. Its height is *measured*, not guessed —
+ *      the bar grows and shrinks with the price row, a wrapped label and the
+ *      safe-area inset, and a hardcoded value was already 10px short.
  */
-export function StickyCta({ watch }: { watch: string }) {
-  const [visible, setVisible] = useState(false);
-  const barRef = useRef<HTMLDivElement>(null);
+
+type Props = {
+  /** Button label. Kept short — it shares a row with the price. */
+  label: string;
+  /** Optional price shown to the left. */
+  price?: string;
+  priceSuffix?: string;
+} & (
+  | { href: string; scrollTo?: never }
+  /** id of an element to scroll to instead of navigating. */
+  | { scrollTo: string; href?: never }
+);
+
+export function StickyCta({ label, price, priceSuffix, href, scrollTo }: Props) {
+  const bar = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   useEffect(() => {
-    const target = document.getElementById(watch);
+    const node = bar.current;
+    if (!node) return;
 
-    let pricingOnScreen = false;
-    let scrolledIn = window.scrollY > 320;
-
-    const update = () => setVisible(scrolledIn && !pricingOnScreen);
-
-    const observer = target
-      ? new IntersectionObserver(
-          ([entry]) => {
-            pricingOnScreen = entry.isIntersecting;
-            update();
-          },
-          { threshold: 0.25 },
-        )
-      : null;
-    if (target && observer) observer.observe(target);
-
-    const onScroll = () => {
-      scrolledIn = window.scrollY > 320;
-      update();
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    update();
-
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, [watch]);
-
-  function goToPricing() {
-    document.getElementById(watch)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+    const observer = new ResizeObserver(([entry]) =>
+      setHeight(entry.target.getBoundingClientRect().height),
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
-      {/* keeps the bar from ever covering the end of the page */}
-      <div aria-hidden style={{ height: '5.5rem' }} />
-      <div ref={barRef} className="sticky-cta" data-visible={visible}>
+      {/* reserves exactly the bar's height so it never covers the last
+          element, whatever the bar currently measures */}
+      <div
+        aria-hidden
+        className="sticky-cta-spacer"
+        style={height ? { height } : undefined}
+      />
+
+      <div className="sticky-cta" ref={bar}>
         <div className="sticky-cta-inner">
-          <div className="sticky-cta-price">
-            <span className="sticky-cta-amount">{offer.annual.label}</span>
-            <span className="sticky-cta-period">a year</span>
-          </div>
-          <button className="cta" onClick={goToPricing}>
-            Start
-          </button>
+          {price && (
+            <div className="sticky-cta-price">
+              <span className="sticky-cta-amount">{price}</span>
+              {priceSuffix && <span className="sticky-cta-period">{priceSuffix}</span>}
+            </div>
+          )}
+
+          {href ? (
+            <Link className="cta sticky-cta-button" href={href}>
+              {label}
+            </Link>
+          ) : (
+            <button
+              className="cta sticky-cta-button"
+              onClick={() =>
+                document
+                  .getElementById(scrollTo!)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            >
+              {label}
+            </button>
+          )}
         </div>
       </div>
     </>

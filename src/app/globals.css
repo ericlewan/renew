@@ -33,6 +33,14 @@ body {
   padding: 0;
 }
 
+html {
+  /* iOS inflates text in some layouts, which pushes button labels past their
+     own borders on a real device while a desktop viewport emulator shows
+     nothing wrong. This is the single most common cause of that bug. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 /* The ground. Every page sits on the deep field; the archetype pages tint it
    with their own --ground, so navigating between profiles feels like moving
    through times of day rather than swapping themes. */
@@ -107,6 +115,9 @@ button {
 /* The one bright object on the page, same rule as the card. */
 .cta {
   display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  text-wrap: balance;
   background: var(--accent, var(--c-bright));
   color: #0A0E16;
   text-decoration: none;
@@ -281,13 +292,20 @@ button {
   padding-top: var(--space-6);
 }
 
+/* Wraps rather than overflowing. At narrow widths the button drops below
+   the input instead of being pushed past the right edge. */
 .field {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
+.field .cta {
+  flex: 1 1 auto;
+}
+
 .field input {
-  flex: 1;
+  flex: 1 1 12rem;
   padding: var(--space-4);
   border: 1px solid var(--c-rule);
   border-radius: var(--radius-md);
@@ -332,7 +350,7 @@ button {
 
 .action {
   display: grid;
-  grid-template-columns: 4.75rem 1fr;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
   gap: var(--space-4);
   align-items: baseline;
 }
@@ -525,7 +543,7 @@ button {
 
 .method li {
   display: grid;
-  grid-template-columns: 2.5rem 1fr;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -586,7 +604,7 @@ button {
 /* A rule down the left reads as a timeline without drawing one. */
 .stages li {
   display: grid;
-  grid-template-columns: 5.5rem 1fr;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
   gap: var(--space-4);
   padding-left: var(--space-4);
   border-left: 1px solid var(--c-rule);
@@ -727,10 +745,22 @@ button {
   font-size: var(--size-lg);
 }
 
+/* Two up normally, stacked under ~360px where each column would be too
+   narrow for the price plus its flag to sit on one line. */
 .tiers {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
+}
+
+@media (max-width: 359px) {
+  .tiers {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tier {
+  min-width: 0;
 }
 
 .tier {
@@ -858,6 +888,11 @@ button {
 
 /* --------------------------------------------------------- sticky cta */
 
+/* Always visible. An earlier version hid above the fold and again whenever
+   the pricing block scrolled into view; in practice that reads as a bar that
+   keeps vanishing, and a call to action you have to hunt for is worth less
+   than a redundant one. */
+
 .sticky-cta {
   position: fixed;
   left: 0;
@@ -866,20 +901,25 @@ button {
   z-index: 20;
   background: color-mix(in srgb, var(--c-surface-deep) 92%, transparent);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--c-rule);
-  padding: var(--space-4) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
-  transform: translateY(110%);
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* max() rather than a bare env(): on a browser with no inset the safe-area
+     value is 0, and the bar would end up with no bottom padding at all.
+     This only does anything because the root layout sets viewport-fit=cover —
+     without that the inset is always 0 and Safari's toolbar covers the bar. */
+  padding: var(--space-4) var(--space-5);
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  padding-left: max(var(--space-5), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-5), env(safe-area-inset-right, 0px));
 }
 
-.sticky-cta[data-visible='true'] {
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sticky-cta {
-    transition: none;
-  }
+/* Reserves the bar's height in normal flow so it can never cover the last
+   element. This value is only the pre-hydration fallback — the component
+   measures the bar and sets the real height inline, because the bar's height
+   changes with the price row, a wrapped label and the safe-area inset. */
+.sticky-cta-spacer {
+  height: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 .sticky-cta-inner {
@@ -889,12 +929,21 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  min-width: 0;
+}
+
+/* The button takes the space it needs and the price yields, rather than the
+   button being pushed past the right edge. */
+.sticky-cta-button {
+  flex: 0 1 auto;
+  white-space: nowrap;
 }
 
 .sticky-cta-price {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .sticky-cta-amount {
@@ -906,6 +955,13 @@ button {
 .sticky-cta-period {
   font-size: var(--size-sm);
   color: var(--c-muted);
+  white-space: nowrap;
+}
+
+/* When there is no price, the button spans the bar. */
+.sticky-cta-inner > .sticky-cta-button:only-child {
+  flex: 1 1 auto;
+  text-align: center;
 }
 
 

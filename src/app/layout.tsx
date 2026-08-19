@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { brand } from '@/design/brand';
 import { cssVariables } from '@/design/tokens';
 import './globals.css';
@@ -8,6 +8,21 @@ export const metadata: Metadata = {
   title: `${brand.prose} — stop crashing at 3pm`,
   description:
     'Find your baseline in two minutes, then a daily protocol that changes it. Three or four small things, timed to your day.',
+};
+
+/**
+ * viewport-fit=cover is load-bearing, not cosmetic.
+ *
+ * Without it every `env(safe-area-inset-*)` resolves to 0, which silently
+ * turns all safe-area padding into dead code — that's why the sticky bar sat
+ * underneath Safari's bottom toolbar on iOS while looking correct
+ * everywhere else.
+ */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0B1019',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

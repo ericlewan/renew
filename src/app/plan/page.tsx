@@ -8,6 +8,7 @@ import { Objections } from '@/components/Objections';
 import { Pricing } from '@/components/Pricing';
 import { ProtocolPreview } from '@/components/ProtocolPreview';
 import { StickyCta } from '@/components/StickyCta';
+import { offer } from '@/lib/offer';
 import { Wordmark } from '@/components/Wordmark';
 import { archetypeColour } from '@/design/tokens';
 import { archetypes } from '@/quiz/archetypes';
@@ -67,7 +68,12 @@ export default function Plan() {
         </button>
       </div>
 
-      <StickyCta watch="pricing" />
+      <StickyCta
+        scrollTo="pricing"
+        label="Start"
+        price={offer.annual.label}
+        priceSuffix={offer.annual.period}
+      />
     </main>
   );
 }
